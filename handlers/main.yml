@@ -1,0 +1,16 @@
+# Standards: 0.1
+---
+- name: Kill sloth
+  command: killall Sloth
+  register: sloth_kill
+  failed_when: sloth_kill.rc != 0 and "No matching processes belonging to you were found" not in sloth_kill.stderr
+  become: "{{ (sloth_user != ansible_user_id) | bool }}"
+  become_user: "{{ sloth_user }}"
+
+- name: Start sloth
+  when: sloth_started
+  command: open -g /Applications/Sloth.app
+  become: "{{ (sloth_user != ansible_user_id) | bool }}"
+  become_user: "{{ sloth_user }}"
+
+...

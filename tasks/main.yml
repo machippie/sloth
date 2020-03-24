@@ -1,0 +1,31 @@
+# Standards: 0.1
+---
+- name: Fact sloth user
+  set_fact:
+    sloth_user: "{{ sloth_user | default(homebrew_user) | default(ansible_user_id) }}"
+  tags:
+    - sloth
+
+- become: "{{ (sloth_user != ansible_user_id) | bool }}"
+  become_user: "{{ sloth_user }}"
+  block:
+    - name: Install required package
+      ignore_errors: True
+      homebrew_cask:
+        name: sloth
+        greedy: True
+        options: appdir=/Applications
+        accept_external_apps: False
+        state: upgraded
+      tags:
+        - sloth
+
+- name: Remove quarantine flag
+  register: sloth_quarantine
+  failed_when: sloth_quarantine.rc != 0 and "No such xattr" not in sloth_quarantine.stderr
+  changed_when: sloth_quarantine.rc == 0
+  command: xattr -d com.apple.quarantine /Applications/Sloth.app
+  tags:
+    - sloth
+
+...
